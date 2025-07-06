@@ -1,6 +1,24 @@
 import FlyingItems from "@/components/FlyingItems";
+import { Link, useNavigate } from "react-router";
+import { useEffect } from "react";
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        navigate("/menu");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [navigate]);
+
   return (
     <div className="h-screen flex items-center justify-center pixelated bg-background">
       <div className="relative aspect-[10/6] h-full max-h-screen p-4 md:p-10">
@@ -27,9 +45,12 @@ function App() {
         {/* Simplified background for mobile */}
         <div className="md:hidden absolute left-0 right-0 bottom-0 h-20 bg-background/80"></div>
 
-        <div className="absolute cursor-pointer left-4 md:left-10 right-4 md:right-10 bottom-2 md:bottom-13 h-16 md:h-60 flex items-center justify-center text-xl md:text-4xl font-semibold metallic-text md:mr-80">
+        <Link
+          to="/Menu"
+          className="absolute cursor-pointer left-4 md:left-10 right-4 md:right-10 bottom-2 md:bottom-13 h-16 md:h-60 flex items-center justify-center text-xl md:text-4xl font-semibold metallic-text md:mr-80 z-10"
+        >
           PRESS START
-        </div>
+        </Link>
 
         {/* Content Layout */}
         <div className="relative h-full flex">

@@ -116,6 +116,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Press Start 2P", cursive;
   }
 }
 
@@ -128,6 +129,10 @@
   100% {
     opacity: 0;
   }
+}
+
+.font-press-start {
+  font-family: "Press Start 2P";
 }
 
 .metallic-text {
