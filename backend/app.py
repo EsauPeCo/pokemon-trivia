@@ -1,66 +1,63 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-import requests
 import json
+from services.pokemon_fetcher import fetch_pokemon_data
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
-# Function to fetch and clean Pokémon data from PokeAPI
-def fetch_pokemon_data():
-    """Fetch the first 151 Pokémon from PokeAPI"""
-    pokemons = []
-    
-    try:
-        # Fetch the first 151 Pokémon (IDs 1-151)
-        for pokemon_id in range(1, 152):
-            response = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pokemon_id}")
-            if response.status_code == 200:
-                pokemon_data = response.json()
-                
-                # Extract relevant information
-                pokemon = {
-                    "id": pokemon_data["id"],
-                    "name": pokemon_data["name"].title(),
-                    "types": [type_info["type"]["name"].title() for type_info in pokemon_data["types"]],
-                    "height": pokemon_data["height"] / 10,  # Convert to meters
-                    "weight": pokemon_data["weight"] / 10,  # Convert to kg
-                    "sprite": pokemon_data["sprites"]["other"]["official-artwork"]["front_default"],
-                    "shiny_sprite": pokemon_data["sprites"]["other"]["official-artwork"]["front_shiny"],
-                    "abilities": [ability["ability"]["name"].title() for ability in pokemon_data["abilities"]],
-                    "base_experience": pokemon_data["base_experience"],
-                    "moves": [move["move"]["name"].title() for move in pokemon_data["moves"]],
-                    "stats": {
-                        stat["stat"]["name"]: stat["base_stat"] 
-                        for stat in pokemon_data["stats"]
-                    }
-                }
-                pokemons.append(pokemon)
-                print(f"Fetched {pokemon['name']} (ID: {pokemon['id']})")
-            else:
-                print(f"Failed to fetch Pokémon with ID {pokemon_id}")
-                
-    except Exception as e:
-        print(f"Error fetching Pokémon data: {e}")
-        return []
-    
-    return pokemons
+
+# Favicon routes
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory("icons", "favicon.ico", mimetype="image/vnd.microsoft.icon")
+
+
+@app.route("/favicon-32x32.png")
+def favicon_32():
+    return send_from_directory("icons", "favicon-32x32.png", mimetype="image/png")
+
 
 # Fetch Pokémon data on startup
 print("Fetching Pokémon data from PokeAPI...")
 pokemons = fetch_pokemon_data()
 print(f"Successfully fetched {len(pokemons)} Pokémon")
 
+
 # Home route
 @app.route("/")
 def home():
-    return "Welcome to the Pokémon-trivia API!"
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pokémon Trivia API</title>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    </head>
+    <body>
+        <h1>Pokémon Trivia API</h1>
+    </body>
+    </html>
+    """
 
 
 # Get all Pokémon
 @app.route("/api/pokemon", methods=["GET"])
 def get_pokemons():
-    return jsonify(pokemons)
+    # Return only essential fields for the list view
+    simplified_pokemons = [
+        {
+            "id": pokemon["id"],
+            "name": pokemon["name"],
+            "sprite": pokemon["sprite"],
+            "shiny_sprite": pokemon["shiny_sprite"],
+        }
+        for pokemon in pokemons
+    ]
+    return jsonify(simplified_pokemons)
 
 
 # Get one Pokémon by ID
@@ -70,16 +67,6 @@ def get_pokemon(pokemon_id):
     if pokemon:
         return jsonify(pokemon)
     return jsonify({"error": "Pokémon not found"}), 404
-
-
-# Get random Pokémon for trivia
-@app.route("/api/pokemon/random", methods=["GET"])
-def get_random_pokemon():
-    import random
-    if pokemons:
-        random_pokemon = random.choice(pokemons)
-        return jsonify(random_pokemon)
-    return jsonify({"error": "No Pokémon available"}), 404
 
 
 # Run the app
