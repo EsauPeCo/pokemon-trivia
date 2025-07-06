@@ -4,22 +4,30 @@ import "./index.css";
 import App from "./pages/Home.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Pokedex } from "@/pages/Pokedex.tsx";
+import { Layout } from "@/components/Layout";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
-  },
-  {
-    path: "/pokedex",
-    element: <Pokedex />,
+    element: <Layout />,
+    children: [
+      {
+        path: "/",
+        element: <App />,
+      },
+      {
+        path: "/pokedex",
+        element: <Pokedex />,
+      },
+    ],
   },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <div className="min-h-screen p-6">
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <RouterProvider router={router} />
-    </div>
+    </ThemeProvider>
   </StrictMode>
 );

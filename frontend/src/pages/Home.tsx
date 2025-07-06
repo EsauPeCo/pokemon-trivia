@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center">
       <img
         src="/International_Pokémon_logo.svg.png"
         alt="Pokemon Logo"

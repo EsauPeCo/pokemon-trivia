@@ -22,7 +22,7 @@ export function Pokedex() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-center">Pokedex</h1>
+      <h1 className="text-2xl font-bold text-center pb-6">Pokedex</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {pokemon.map((pokemon: Pokemon) => (
           <Card key={pokemon.id} className="gap-1 -full">
