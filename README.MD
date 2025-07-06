@@ -56,8 +56,8 @@ FLASK_ENV=development
 
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 ## Development
@@ -75,7 +75,7 @@ python app.py
 
 # Terminal 2 - Frontend
 cd frontend
-npm run dev
+pnpm run dev
 ```
 
 ### Test Connection
