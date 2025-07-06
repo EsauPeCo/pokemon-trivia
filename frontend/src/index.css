@@ -118,3 +118,196 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.metallic-text {
+  font-family: "Press Start 2P", cursive;
+  background: linear-gradient(
+    90deg,
+    #e6e6e6,
+    #c0c0c0,
+    #f5f5f5,
+    #a0a0a0,
+    #dcdcdc
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2.5s linear infinite, blink 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  filter: contrast(1.05) saturate(1.1) blur(0.8px);
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+  mask: url("/International_Pokémon_logo.svg.png");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask: url("/International_Pokémon_logo.svg.png");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.shine-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    transparent 40%,
+    rgba(255, 255, 255, 0.8) 45%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.8) 55%,
+    transparent 60%,
+    transparent
+  );
+  animation: shine 6.5s ease-in-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  23% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes fly-left-to-right {
+  0% {
+    transform: translate(var(--start-x), var(--start-y))
+      rotate(var(--initial-rotation)) scale(var(--initial-scale));
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--start-x) + 100vw + 200px),
+        calc(var(--start-y) - 50vh - 100px)
+      )
+      rotate(calc(var(--initial-rotation) + 540deg)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-right-to-left {
+  0% {
+    transform: translate(var(--start-x), var(--start-y))
+      rotate(var(--initial-rotation)) scale(var(--initial-scale));
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--start-x) - 100vw - 200px),
+        calc(var(--start-y) - 50vh - 100px)
+      )
+      rotate(calc(var(--initial-rotation) - 540deg)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-top-to-bottom {
+  0% {
+    transform: translate(var(--start-x), var(--start-y))
+      rotate(var(--initial-rotation)) scale(var(--initial-scale));
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--start-x) + 50vw + 100px),
+        calc(var(--start-y) + 100vh + 200px)
+      )
+      rotate(calc(var(--initial-rotation) + 540deg)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-bottom-to-top {
+  0% {
+    transform: translate(var(--start-x), var(--start-y))
+      rotate(var(--initial-rotation)) scale(var(--initial-scale));
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--start-x) - 50vw - 100px),
+        calc(var(--start-y) - 100vh - 200px)
+      )
+      rotate(calc(var(--initial-rotation) - 540deg)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.animate-fly-left-to-right {
+  animation: fly-left-to-right ease-in-out forwards;
+}
+
+.animate-fly-right-to-left {
+  animation: fly-right-to-left ease-in-out forwards;
+}
+.animate-fly-top-to-bottom {
+  animation: fly-top-to-bottom ease-in-out forwards;
+}
+
+.animate-fly-bottom-to-top {
+  animation: fly-bottom-to-top ease-in-out forwards;
+}

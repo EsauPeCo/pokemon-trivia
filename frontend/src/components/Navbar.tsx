@@ -6,7 +6,6 @@ import { Moon, Sun } from "lucide-react";
 export function Navbar() {
   const { theme, setTheme } = useTheme();
 
-  // Determine the actual theme being used (resolve system preference)
   const resolvedTheme =
     theme === "system"
       ? window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -15,7 +14,6 @@ export function Navbar() {
       : theme;
 
   const handleThemeToggle = () => {
-    // Simple toggle between light and dark
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 

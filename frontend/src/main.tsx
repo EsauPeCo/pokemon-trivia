@@ -10,12 +10,12 @@ import { ThemeProvider } from "@/components/theme-provider";
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <App />,
+  },
+  {
+    path: "/",
     element: <Layout />,
     children: [
-      {
-        path: "/",
-        element: <App />,
-      },
       {
         path: "/pokedex",
         element: <Pokedex />,
