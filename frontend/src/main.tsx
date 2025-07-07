@@ -8,6 +8,8 @@ import { PokemonDetail } from "@/pages/PokemonDetail.tsx";
 import { Layout } from "@/components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Menu } from "@/pages/Menu.tsx";
+import { Trivia } from "@/pages/Trivia.tsx";
+import { GameIntro } from "@/pages/GameIntro.tsx";
 
 const router = createBrowserRouter([
   {
@@ -31,12 +33,12 @@ const router = createBrowserRouter([
         element: <Menu />,
       },
       {
-        path: "/trivia",
-        element: (
-          <div className="text-center py-20">
-            <h1 className="text-4xl font-bold">Pokemon Trivia Coming Soon!</h1>
-          </div>
-        ),
+        path: "/game-intro",
+        element: <GameIntro />,
+      },
+      {
+        path: "/trivia/:playerId",
+        element: <Trivia />,
       },
     ],
   },

@@ -9,21 +9,21 @@ const EvolutionChainComponent = ({
 }: EvolutionChainComponentProps) => {
   if (!evolutionData) return null;
 
-  // Create a lookup map for O(1) sprite access
-  const pokemonLookup = pokemonList?.reduce((acc, p) => {
-    acc[p.name.toLowerCase()] = p;
-    return acc;
-  }, {} as Record<string, Pokemon>) || {};
+  const pokemonLookup =
+    pokemonList?.reduce((acc, p) => {
+      acc[p.name.toLowerCase()] = p;
+      return acc;
+    }, {} as Record<string, Pokemon>) || {};
 
-  const renderEvolution = (evolution: any, isFirst: boolean = false) => {
+  const renderEvolution = (evolution: any) => {
     const pokemonData = pokemonLookup[evolution.name.toLowerCase()];
-    
+
     return (
       <div key={evolution.name} className="flex items-center space-x-4">
         <div className="text-center min-w-36">
           {pokemonData ? (
-            <img 
-              src={pokemonData.sprite} 
+            <img
+              src={pokemonData.sprite}
               alt={evolution.name}
               className="w-32 h-32 mx-auto mb-2 object-contain hover:scale-110 transition-transform duration-200"
             />
@@ -42,12 +42,19 @@ const EvolutionChainComponent = ({
               <div className="text-2xl text-gray-400">→</div>
               {evolution.evolves_to[0].evolution_details && (
                 <div className="text-xs text-gray-500 mt-1 text-center">
-                  {evolution.evolves_to[0].evolution_details.trigger === "Level-Up" &&
+                  {evolution.evolves_to[0].evolution_details.trigger ===
+                    "Level-Up" &&
                     evolution.evolves_to[0].evolution_details.min_level && (
-                      <span>Lv. {evolution.evolves_to[0].evolution_details.min_level}</span>
+                      <span>
+                        Lv.{" "}
+                        {evolution.evolves_to[0].evolution_details.min_level}
+                      </span>
                     )}
-                  {evolution.evolves_to[0].evolution_details.trigger !== "Level-Up" && (
-                    <span>{evolution.evolves_to[0].evolution_details.trigger}</span>
+                  {evolution.evolves_to[0].evolution_details.trigger !==
+                    "Level-Up" && (
+                    <span>
+                      {evolution.evolves_to[0].evolution_details.trigger}
+                    </span>
                   )}
                 </div>
               )}
@@ -63,7 +70,7 @@ const EvolutionChainComponent = ({
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 p-4rounded-lg">
-      {renderEvolution(evolutionData, true)}
+      {renderEvolution(evolutionData)}
     </div>
   );
 };
@@ -73,20 +80,31 @@ interface PokemonAdditionalInfoProps {
   pokemonList?: Pokemon[];
 }
 
-export const PokemonAdditionalInfo = ({ pokemon, pokemonList }: PokemonAdditionalInfoProps) => {
+export const PokemonAdditionalInfo = ({
+  pokemon,
+  pokemonList,
+}: PokemonAdditionalInfoProps) => {
   const infoItems = [
     {
       label: "Base Experience",
-      value: pokemon.base_experience?.toString() || "N/A"
+      value: pokemon.base_experience?.toString() || "N/A",
     },
-    ...(pokemon.habitat ? [{
-      label: "Habitat",
-      value: pokemon.habitat
-    }] : []),
-    ...(pokemon.shape ? [{
-      label: "Shape", 
-      value: pokemon.shape
-    }] : [])
+    ...(pokemon.habitat
+      ? [
+          {
+            label: "Habitat",
+            value: pokemon.habitat,
+          },
+        ]
+      : []),
+    ...(pokemon.shape
+      ? [
+          {
+            label: "Shape",
+            value: pokemon.shape,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -97,10 +115,12 @@ export const PokemonAdditionalInfo = ({ pokemon, pokemonList }: PokemonAdditiona
       <CardContent className="space-y-6">
         <div className="space-y-3">
           {infoItems.map((item, index) => (
-            <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+            <div
+              key={index}
+              className="flex justify-between items-center py-2 border-b border-gray-100"
+            >
               <span className="font-medium">{item.label}:</span>
               <span className="font-semibold">{item.value}</span>
-              
             </div>
           ))}
         </div>
@@ -124,8 +144,8 @@ export const PokemonAdditionalInfo = ({ pokemon, pokemonList }: PokemonAdditiona
               <span className="font-medium">Evolution Chain:</span>
             </div>
             <div className="mt-2">
-              <EvolutionChainComponent 
-                evolutionData={pokemon.evolution_chain} 
+              <EvolutionChainComponent
+                evolutionData={pokemon.evolution_chain}
                 pokemonList={pokemonList}
               />
             </div>
@@ -134,4 +154,4 @@ export const PokemonAdditionalInfo = ({ pokemon, pokemonList }: PokemonAdditiona
       </CardContent>
     </Card>
   );
-}; 
+};
