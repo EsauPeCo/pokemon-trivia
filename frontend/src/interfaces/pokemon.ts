@@ -7,6 +7,17 @@ export interface PokemonStats {
   speed: number;
 }
 
+export interface EvolutionDetails {
+  min_level?: number;
+  trigger: string;
+}
+
+export interface EvolutionChain {
+  name: string;
+  evolution_details?: EvolutionDetails;
+  evolves_to: EvolutionChain[];
+}
+
 export interface Pokemon {
   id: number;
   name: string;
@@ -19,4 +30,8 @@ export interface Pokemon {
   shiny_sprite: string;
   stats: PokemonStats;
   types: string[];
+  flavor_text?: string;
+  habitat?: string;
+  shape?: string;
+  evolution_chain?: EvolutionChain;
 } 

@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./pages/Home.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Pokedex } from "@/pages/Pokedex.tsx";
+import { PokemonDetail } from "@/pages/PokemonDetail.tsx";
 import { Layout } from "@/components/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Menu } from "@/pages/Menu.tsx";
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path: "/pokedex",
         element: <Pokedex />,
+      },
+      {
+        path: "/pokemon/:id",
+        element: <PokemonDetail />,
       },
       {
         path: "/menu",
