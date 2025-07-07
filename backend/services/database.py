@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 
 
 class PokemonDatabase:
-    def __init__(self, db_path: str = "pokemon.db"):
+    def __init__(self, db_path: str = "data/pokemon.db"):
         self.db_path = db_path
         self.init_database()
     

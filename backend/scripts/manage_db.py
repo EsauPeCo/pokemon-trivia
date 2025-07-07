@@ -12,7 +12,7 @@ from services.pokemon_fetcher import fetch_pokemon_data
 
 def reset_database():
     """Delete and recreate the database"""
-    db_path = "pokemon.db"
+    db_path = "data/pokemon.db"
     if os.path.exists(db_path):
         os.remove(db_path)
         print(f"✓ Deleted {db_path}")
@@ -54,7 +54,7 @@ def show_stats():
     print(f"   Pokemon: {count}")
     
     # Show database file size
-    db_path = "pokemon.db"
+    db_path = "data/pokemon.db"
     if os.path.exists(db_path):
         size_mb = os.path.getsize(db_path) / (1024 * 1024)
         print(f"   Database size: {size_mb:.2f} MB")
