@@ -7,7 +7,10 @@ from ai import TriviaGenerator
 import os
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, 
+     origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://127.0.0.1:3000"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
 
 # Initialize database
 db = PokemonDatabase()
@@ -261,48 +264,89 @@ def generate_trivia_batch():
 
 
 # Question rating endpoints
-@app.route("/api/trivia/questions/<int:question_id>/like", methods=["POST"])
-def like_question(question_id):
-    """Like a trivia question"""
+@app.route("/api/trivia/questions/rating", methods=["POST"])
+def update_questions_rating():
+    """Update rating for multiple trivia questions"""
     try:
-        success = db.update_question_rating(question_id, 'like')
-        if success:
-            question = db.get_trivia_question_by_id(question_id)
-            if question:
-                return jsonify({
-                    "message": "Question liked successfully",
+        data = request.get_json()
+        updates = data.get("updates", [])
+        
+        if not updates:
+            return jsonify({"error": "updates array is required"}), 400
+        
+        if not isinstance(updates, list):
+            return jsonify({"error": "updates must be an array"}), 400
+        
+        if len(updates) > 50:  # Limit batch size
+            return jsonify({"error": "Maximum 50 updates per batch"}), 400
+        
+        results = []
+        errors = []
+        
+        for update in updates:
+            question_id = update.get("question_id")
+            action = update.get("action")
+            
+            # Validate each update
+            if not question_id:
+                errors.append({"error": "question_id is required", "update": update})
+                continue
+                
+            if action not in ["like", "dislike"]:
+                errors.append({"error": "action must be 'like' or 'dislike'", "update": update})
+                continue
+            
+            try:
+                # Update the rating
+                success = db.update_question_rating(question_id, action)
+                if success:
+                    # Get updated question data
+                    question = db.get_trivia_question_by_id(question_id)
+                    if question:
+                        results.append({
+                            "question_id": question_id,
+                            "action": action,
+                            "success": True,
+                            "likes": question['likes'],
+                            "dislikes": question['dislikes']
+                        })
+                    else:
+                        errors.append({
+                            "error": "Question not found",
+                            "question_id": question_id,
+                            "action": action
+                        })
+                else:
+                    errors.append({
+                        "error": "Failed to update rating",
+                        "question_id": question_id,
+                        "action": action
+                    })
+                    
+            except Exception as e:
+                errors.append({
+                    "error": f"Failed to update question {question_id}: {str(e)}",
                     "question_id": question_id,
-                    "likes": question['likes']
+                    "action": action
                 })
-            else:
-                return jsonify({"error": "Question not found"}), 404
-        else:
-            return jsonify({"error": "Failed to like question"}), 400
+        
+        response = {
+            "message": f"Processed {len(results)} successful updates",
+            "results": results,
+            "successful_count": len(results),
+            "error_count": len(errors)
+        }
+        
+        if errors:
+            response["errors"] = errors
+        
+        # Return 207 Multi-Status if there were partial failures, otherwise 200
+        status_code = 207 if errors and results else 200 if results else 400
+        
+        return jsonify(response), status_code
 
     except Exception as e:
-        return jsonify({"error": f"Failed to like question: {str(e)}"}), 500
-
-
-@app.route("/api/trivia/questions/<int:question_id>/dislike", methods=["POST"])
-def dislike_question(question_id):
-    """Dislike a trivia question"""
-    try:
-        success = db.update_question_rating(question_id, 'dislike')
-        if success:
-            question = db.get_trivia_question_by_id(question_id)
-            if question:
-                return jsonify({
-                    "message": "Question disliked successfully",
-                    "question_id": question_id,
-                    "dislikes": question['dislikes']
-                })
-            else:
-                return jsonify({"error": "Question not found"}), 404
-        else:
-            return jsonify({"error": "Failed to dislike question"}), 400
-
-    except Exception as e:
-        return jsonify({"error": f"Failed to dislike question: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to update question ratings: {str(e)}"}), 500
 
 
 # Question retrieval endpoints
@@ -356,6 +400,11 @@ def create_player():
         existing_player = db.get_player_by_name(name.strip())
         if existing_player:
             return jsonify({"error": "Player with this name already exists"}), 400
+        
+        # Check player limit (max 3 players allowed)
+        all_players = db.get_all_players()
+        if len(all_players) >= 3:
+            return jsonify({"error": "Player limit reached"}), 400
         
         # Create new player
         player_id = db.create_player(name.strip())

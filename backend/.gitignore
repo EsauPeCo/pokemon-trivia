@@ -17,11 +17,15 @@ venv/
 env/
 ENV/
 
+# OS files
+.DS_Store
+Thumbs.db
+
 # Database
 *.db
 *.sqlite
 *.sqlite3
-/data/
+data/*.db
 
 # Logs
 *.log
