@@ -12,7 +12,107 @@ trivia_generator = TriviaGenerator()
 
 @trivia_bp.route("/generate", methods=["POST"])
 def generate_trivia():
-    """Generate a trivia question for a specific Pokemon"""
+    """Generate a trivia question for a specific Pokemon
+    ---
+    tags:
+      - trivia
+    summary: Generate trivia question
+    description: Generate a single AI-powered trivia question for a specific Pokemon
+    parameters:
+      - name: body
+        in: body
+        required: true
+        description: Trivia generation parameters
+        schema:
+          type: object
+          required:
+            - pokemon_id
+          properties:
+            pokemon_id:
+              type: integer
+              description: ID of the Pokemon to generate a question about
+              example: 25
+            question_type:
+              type: string
+              description: Type of question to generate
+              enum: ["basic_info", "stats", "moves", "evolution", "general"]
+              default: "general"
+              example: "stats"
+            difficulty:
+              type: string
+              description: Difficulty level of the question
+              enum: ["easy", "medium", "hard"]
+              default: "medium"
+              example: "medium"
+            focus:
+              type: string
+              description: Specific focus area for general questions
+              example: "abilities"
+    responses:
+      200:
+        description: Trivia question generated successfully
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Question ID
+              example: 123
+            question:
+              type: string
+              description: The trivia question
+              example: "What is Pikachu's base Attack stat?"
+            options:
+              type: array
+              items:
+                type: string
+              description: Multiple choice options
+              example: ["55", "45", "65", "40"]
+            correct_answer:
+              type: string
+              description: The correct answer
+              example: "55"
+            question_type:
+              type: string
+              description: Type of the generated question
+              example: "stats"
+            difficulty:
+              type: string
+              description: Difficulty level of the question
+              example: "medium"
+            pokemon_id:
+              type: integer
+              description: ID of the Pokemon the question is about
+              example: 25
+            pokemon_name:
+              type: string
+              description: Name of the Pokemon
+              example: "pikachu"
+      400:
+        description: Invalid input data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "pokemon_id is required"
+      404:
+        description: Pokemon not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Pokemon not found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to generate trivia: AI service unavailable"
+    """
     try:
         data = request.get_json()
         pokemon_id = data.get("pokemon_id")
@@ -61,18 +161,128 @@ def generate_trivia():
 @trivia_bp.route("/generate-five", methods=["POST"])
 def generate_five_trivia_questions():
     """Generate exactly 5 trivia questions for the same Pokemon with identical configuration
-    
-    This endpoint creates 5 diverse trivia questions about a single Pokemon, all sharing
-    the same question type, difficulty level, and focus area. Each question follows the
-    same format as single question generation but provides variety within the constraints.
-    
-    Request body should contain:
-    - pokemon_id: ID of the Pokemon to generate questions for
-    - question_type: Type of questions (basic_info, stats, moves, evolution, general)
-    - difficulty: Difficulty level (easy, medium, hard) 
-    - focus: Optional focus area for general questions
-    
-    Returns 5 questions with the same format as single question endpoints.
+    ---
+    tags:
+      - trivia
+    summary: Generate 5 trivia questions
+    description: Generate exactly 5 diverse AI-powered trivia questions about a single Pokemon with identical configuration settings
+    parameters:
+      - name: body
+        in: body
+        required: true
+        description: Trivia generation parameters for 5 questions
+        schema:
+          type: object
+          required:
+            - pokemon_id
+          properties:
+            pokemon_id:
+              type: integer
+              description: ID of the Pokemon to generate questions about
+              example: 25
+            question_type:
+              type: string
+              description: Type of questions to generate (all 5 will be this type)
+              enum: ["basic_info", "stats", "moves", "evolution", "general"]
+              default: "general"
+              example: "stats"
+            difficulty:
+              type: string
+              description: Difficulty level of all questions
+              enum: ["easy", "medium", "hard"]
+              default: "medium"
+              example: "medium"
+            focus:
+              type: string
+              description: Specific focus area for general questions
+              example: "abilities"
+    responses:
+      200:
+        description: 5 trivia questions generated successfully
+        schema:
+          type: object
+          properties:
+            questions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Question ID
+                    example: 123
+                  question:
+                    type: string
+                    description: The trivia question
+                    example: "What is Pikachu's base Attack stat?"
+                  options:
+                    type: array
+                    items:
+                      type: string
+                    description: Multiple choice options
+                    example: ["55", "45", "65", "40"]
+                  correct_answer:
+                    type: string
+                    description: The correct answer
+                    example: "55"
+                  question_type:
+                    type: string
+                    description: Type of the question
+                    example: "stats"
+                  difficulty:
+                    type: string
+                    description: Difficulty level
+                    example: "medium"
+              description: Array of exactly 5 trivia questions
+            count:
+              type: integer
+              description: Number of questions (always 5)
+              example: 5
+            pokemon_id:
+              type: integer
+              description: ID of the Pokemon
+              example: 25
+            pokemon_name:
+              type: string
+              description: Name of the Pokemon
+              example: "pikachu"
+            configuration:
+              type: object
+              properties:
+                question_type:
+                  type: string
+                  example: "stats"
+                difficulty:
+                  type: string
+                  example: "medium"
+                focus:
+                  type: string
+                  example: "abilities"
+              description: Configuration used for all questions
+      400:
+        description: Invalid input data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "pokemon_id is required"
+      404:
+        description: Pokemon not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Pokemon not found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to generate 5 trivia questions: AI service unavailable"
     """
     try:
         data = request.get_json()
@@ -131,7 +341,76 @@ def generate_five_trivia_questions():
 
 @trivia_bp.route("/random", methods=["GET"])
 def generate_random_trivia():
-    """Generate a random trivia question from a random Pokemon"""
+    """Generate a random trivia question from a random Pokemon
+    ---
+    tags:
+      - trivia
+    summary: Generate random trivia question
+    description: Generate a random trivia question about a randomly selected Pokemon
+    parameters:
+      - name: difficulty
+        in: query
+        type: string
+        description: Difficulty level (optional)
+        enum: ["easy", "medium", "hard"]
+        example: "medium"
+    responses:
+      200:
+        description: Random trivia question generated successfully
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Question ID
+              example: 124
+            question:
+              type: string
+              description: The trivia question
+              example: "Which type is Charizard weak against?"
+            options:
+              type: array
+              items:
+                type: string
+              description: Multiple choice options
+              example: ["Water", "Grass", "Electric", "Fire"]
+            correct_answer:
+              type: string
+              description: The correct answer
+              example: "Water"
+            question_type:
+              type: string
+              description: Type of the generated question
+              example: "general"
+            difficulty:
+              type: string
+              description: Difficulty level of the question
+              example: "medium"
+            pokemon_id:
+              type: integer
+              description: ID of the randomly selected Pokemon
+              example: 6
+            pokemon_name:
+              type: string
+              description: Name of the Pokemon
+              example: "charizard"
+      404:
+        description: No Pokemon found in database
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "No Pokemon found in database"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to generate random trivia: AI service unavailable"
+    """
     try:
         difficulty = request.args.get("difficulty")
 
@@ -174,7 +453,114 @@ def generate_random_trivia():
 
 @trivia_bp.route("/batch", methods=["POST"])
 def generate_trivia_batch():
-    """Generate multiple trivia questions"""
+    """Generate multiple trivia questions
+    ---
+    tags:
+      - trivia
+    summary: Generate batch of trivia questions
+    description: Generate multiple trivia questions with flexible configuration (max 20 questions)
+    parameters:
+      - name: body
+        in: body
+        required: true
+        description: Batch trivia generation parameters
+        schema:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of questions to generate (max 20)
+              minimum: 1
+              maximum: 20
+              default: 5
+              example: 10
+            difficulty:
+              type: string
+              description: Difficulty level for all questions
+              enum: ["easy", "medium", "hard"]
+              example: "medium"
+            pokemon_ids:
+              type: array
+              items:
+                type: integer
+              description: Specific Pokemon IDs to generate questions for (optional, uses random if empty)
+              example: [1, 4, 7, 25, 150]
+    responses:
+      200:
+        description: Batch of trivia questions generated successfully
+        schema:
+          type: object
+          properties:
+            questions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Question ID
+                    example: 125
+                  question:
+                    type: string
+                    description: The trivia question
+                    example: "What evolution does Bulbasaur become?"
+                  options:
+                    type: array
+                    items:
+                      type: string
+                    description: Multiple choice options
+                    example: ["Ivysaur", "Venusaur", "Oddish", "Bellsprout"]
+                  correct_answer:
+                    type: string
+                    description: The correct answer
+                    example: "Ivysaur"
+                  question_type:
+                    type: string
+                    description: Type of the question
+                    example: "evolution"
+                  difficulty:
+                    type: string
+                    description: Difficulty level
+                    example: "medium"
+                  pokemon_id:
+                    type: integer
+                    description: ID of the Pokemon the question is about
+                    example: 1
+                  pokemon_name:
+                    type: string
+                    description: Name of the Pokemon
+                    example: "bulbasaur"
+              description: Array of generated trivia questions
+            count:
+              type: integer
+              description: Number of questions generated
+              example: 10
+      400:
+        description: Invalid input data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              examples:
+                count_limit: "Maximum 20 questions per batch"
+      404:
+        description: No valid Pokemon found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "No valid Pokemon found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to generate trivia batch: AI service unavailable"
+    """
     try:
         data = request.get_json()
         count = data.get("count", 5)
@@ -232,7 +618,150 @@ def generate_trivia_batch():
 
 @trivia_bp.route("/questions/rating", methods=["POST"])
 def update_questions_rating():
-    """Update rating for multiple trivia questions"""
+    """Update rating for multiple trivia questions
+    ---
+    tags:
+      - trivia
+    summary: Update question ratings
+    description: Update like/dislike ratings for multiple trivia questions in batch (max 50 updates)
+    parameters:
+      - name: body
+        in: body
+        required: true
+        description: Batch rating update data
+        schema:
+          type: object
+          required:
+            - updates
+          properties:
+            updates:
+              type: array
+              items:
+                type: object
+                required:
+                  - question_id
+                  - action
+                properties:
+                  question_id:
+                    type: integer
+                    description: ID of the question to rate
+                    example: 123
+                  action:
+                    type: string
+                    description: Rating action
+                    enum: ["like", "dislike"]
+                    example: "like"
+              description: Array of rating updates (max 50)
+              maxItems: 50
+              example: [{"question_id": 123, "action": "like"}, {"question_id": 124, "action": "dislike"}]
+    responses:
+      200:
+        description: All ratings updated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Processed 2 successful updates"
+            results:
+              type: array
+              items:
+                type: object
+                properties:
+                  question_id:
+                    type: integer
+                    example: 123
+                  action:
+                    type: string
+                    example: "like"
+                  success:
+                    type: boolean
+                    example: true
+                  likes:
+                    type: integer
+                    description: Updated like count
+                    example: 15
+                  dislikes:
+                    type: integer
+                    description: Updated dislike count
+                    example: 3
+              description: Array of successful updates
+            successful_count:
+              type: integer
+              description: Number of successful updates
+              example: 2
+            error_count:
+              type: integer
+              description: Number of failed updates
+              example: 0
+      207:
+        description: Partial success (some updates failed)
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Processed 1 successful updates"
+            results:
+              type: array
+              items:
+                type: object
+                properties:
+                  question_id:
+                    type: integer
+                    example: 123
+                  action:
+                    type: string
+                    example: "like"
+                  success:
+                    type: boolean
+                    example: true
+                  likes:
+                    type: integer
+                    example: 15
+                  dislikes:
+                    type: integer
+                    example: 3
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Question not found"
+                  question_id:
+                    type: integer
+                    example: 999
+                  action:
+                    type: string
+                    example: "like"
+            successful_count:
+              type: integer
+              example: 1
+            error_count:
+              type: integer
+              example: 1
+      400:
+        description: Invalid input data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              examples:
+                missing_updates: "updates array is required"
+                invalid_type: "updates must be an array"
+                batch_limit: "Maximum 50 updates per batch"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to update question ratings: Database error"
+    """
     try:
         data = request.get_json()
         updates = data.get("updates", [])
@@ -317,7 +846,89 @@ def update_questions_rating():
 
 @trivia_bp.route("/questions/<int:question_id>", methods=["GET"])
 def get_question(question_id):
-    """Get a specific trivia question by ID"""
+    """Get a specific trivia question by ID
+    ---
+    tags:
+      - trivia
+    summary: Get trivia question by ID
+    description: Retrieve details for a specific trivia question including ratings
+    parameters:
+      - name: question_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the trivia question to retrieve
+        example: 123
+    responses:
+      200:
+        description: Trivia question successfully retrieved
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Question ID
+              example: 123
+            question:
+              type: string
+              description: The trivia question
+              example: "What is Pikachu's base Attack stat?"
+            options:
+              type: array
+              items:
+                type: string
+              description: Multiple choice options
+              example: ["55", "45", "65", "40"]
+            correct_answer:
+              type: string
+              description: The correct answer
+              example: "55"
+            question_type:
+              type: string
+              description: Type of the question
+              example: "stats"
+            difficulty:
+              type: string
+              description: Difficulty level
+              example: "medium"
+            pokemon_id:
+              type: integer
+              description: ID of the Pokemon the question is about
+              example: 25
+            pokemon_name:
+              type: string
+              description: Name of the Pokemon
+              example: "pikachu"
+            likes:
+              type: integer
+              description: Number of likes
+              example: 15
+            dislikes:
+              type: integer
+              description: Number of dislikes
+              example: 3
+            created_at:
+              type: string
+              format: date-time
+              description: Question creation timestamp
+              example: "2024-01-15T14:30:00"
+      404:
+        description: Question not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Question not found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to get question: Database error"
+    """
     try:
         question = db.get_trivia_question_by_id(question_id)
         if question:
@@ -331,7 +942,98 @@ def get_question(question_id):
 
 @trivia_bp.route("/questions", methods=["GET"])
 def get_recent_questions():
-    """Get recent trivia questions"""
+    """Get recent trivia questions
+    ---
+    tags:
+      - trivia
+    summary: Get recent trivia questions
+    description: Retrieve recent trivia questions with optional filtering by Pokemon
+    parameters:
+      - name: limit
+        in: query
+        type: integer
+        description: Maximum number of questions to return
+        default: 20
+        minimum: 1
+        maximum: 100
+        example: 20
+      - name: pokemon_id
+        in: query
+        type: integer
+        description: Filter questions by specific Pokemon ID
+        example: 25
+    responses:
+      200:
+        description: Recent trivia questions successfully retrieved
+        schema:
+          type: object
+          properties:
+            questions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Question ID
+                    example: 123
+                  question:
+                    type: string
+                    description: The trivia question
+                    example: "What is Pikachu's base Attack stat?"
+                  options:
+                    type: array
+                    items:
+                      type: string
+                    description: Multiple choice options
+                    example: ["55", "45", "65", "40"]
+                  correct_answer:
+                    type: string
+                    description: The correct answer
+                    example: "55"
+                  question_type:
+                    type: string
+                    description: Type of the question
+                    example: "stats"
+                  difficulty:
+                    type: string
+                    description: Difficulty level
+                    example: "medium"
+                  pokemon_id:
+                    type: integer
+                    description: ID of the Pokemon the question is about
+                    example: 25
+                  pokemon_name:
+                    type: string
+                    description: Name of the Pokemon
+                    example: "pikachu"
+                  likes:
+                    type: integer
+                    description: Number of likes
+                    example: 15
+                  dislikes:
+                    type: integer
+                    description: Number of dislikes
+                    example: 3
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Question creation timestamp
+                    example: "2024-01-15T14:30:00"
+              description: Array of recent trivia questions
+            count:
+              type: integer
+              description: Number of questions returned
+              example: 15
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to get questions: Database error"
+    """
     try:
         limit = request.args.get("limit", 20, type=int)
         pokemon_id = request.args.get("pokemon_id", type=int)

@@ -11,7 +11,133 @@ db = PokemonDatabase()
 
 @sessions_bp.route("", methods=["POST"])
 def create_game_session():
-    """Create a new game session"""
+    """Create a new game session
+    ---
+    tags:
+      - sessions
+    summary: Create a new game session
+    description: Start a new trivia game session for a player with specified configuration
+    parameters:
+      - name: body
+        in: body
+        required: true
+        description: Game session creation data
+        schema:
+          type: object
+          required:
+            - player_id
+            - session_type
+          properties:
+            player_id:
+              type: integer
+              description: ID of the player starting the session
+              example: 1
+            session_type:
+              type: string
+              description: Type of trivia session
+              enum: ["random", "specific_pokemon", "batch", "custom"]
+              example: "specific_pokemon"
+            difficulty:
+              type: string
+              description: Difficulty level for the session
+              enum: ["easy", "medium", "hard", "mixed"]
+              example: "medium"
+            metadata:
+              type: object
+              description: Additional session configuration data
+              example: {"pokemon_id": 25, "question_count": 5}
+            is_perfect_score:
+              type: integer
+              description: Whether session requires perfect score (1 or 0)
+              example: 0
+    responses:
+      201:
+        description: Game session created successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Game session created successfully"
+            session:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Session ID
+                  example: 15
+                player_id:
+                  type: integer
+                  description: Player ID
+                  example: 1
+                session_type:
+                  type: string
+                  description: Type of trivia session
+                  example: "specific_pokemon"
+                difficulty:
+                  type: string
+                  description: Difficulty level
+                  example: "medium"
+                start_time:
+                  type: string
+                  format: date-time
+                  description: Session start time
+                  example: "2024-01-15T14:00:00"
+                end_time:
+                  type: string
+                  format: date-time
+                  description: Session end time (null when active)
+                  example: null
+                metadata:
+                  type: object
+                  description: Session configuration data
+                  example: {"pokemon_id": 25}
+                total_questions:
+                  type: integer
+                  description: Total questions in session
+                  example: 0
+                correct_answers:
+                  type: integer
+                  description: Number of correct answers
+                  example: 0
+                score:
+                  type: number
+                  format: float
+                  description: Final score percentage
+                  example: 0.0
+                is_perfect_score:
+                  type: integer
+                  description: Whether session had perfect score
+                  example: 0
+      400:
+        description: Invalid input data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              examples:
+                missing_player: "player_id is required"
+                missing_type: "session_type is required"
+                invalid_type: "session_type must be one of: random, specific_pokemon, batch, custom"
+                invalid_difficulty: "difficulty must be one of: easy, medium, hard, mixed"
+      404:
+        description: Player not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Player not found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to create game session: Database error"
+    """
     try:
         data = request.get_json()
         player_id = data.get("player_id")
@@ -67,7 +193,89 @@ def create_game_session():
 
 @sessions_bp.route("/<int:session_id>", methods=["GET"])
 def get_game_session(session_id):
-    """Get a specific game session by ID"""
+    """Get a specific game session by ID
+    ---
+    tags:
+      - sessions
+    summary: Get game session by ID
+    description: Retrieve detailed information for a specific game session
+    parameters:
+      - name: session_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the game session to retrieve
+        example: 15
+    responses:
+      200:
+        description: Game session successfully retrieved
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Session ID
+              example: 15
+            player_id:
+              type: integer
+              description: Player ID
+              example: 1
+            session_type:
+              type: string
+              description: Type of trivia session
+              example: "specific_pokemon"
+            difficulty:
+              type: string
+              description: Difficulty level
+              example: "medium"
+            start_time:
+              type: string
+              format: date-time
+              description: Session start time
+              example: "2024-01-15T14:00:00"
+            end_time:
+              type: string
+              format: date-time
+              description: Session end time (null if active)
+              example: "2024-01-15T14:30:00"
+            metadata:
+              type: object
+              description: Session configuration data
+              example: {"pokemon_id": 25}
+            total_questions:
+              type: integer
+              description: Total questions in session
+              example: 5
+            correct_answers:
+              type: integer
+              description: Number of correct answers
+              example: 4
+            score:
+              type: number
+              format: float
+              description: Final score percentage
+              example: 80.0
+            is_perfect_score:
+              type: integer
+              description: Whether session had perfect score (1 or 0)
+              example: 0
+      404:
+        description: Game session not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Game session not found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to get game session: Database error"
+    """
     try:
         session = db.get_game_session_by_id(session_id)
         if session:
@@ -81,7 +289,136 @@ def get_game_session(session_id):
 
 @sessions_bp.route("/<int:session_id>", methods=["PUT"])
 def update_game_session(session_id):
-    """Update a game session (typically used to end session and record results)"""
+    """Update a game session (typically used to end session and record results)
+    ---
+    tags:
+      - sessions
+    summary: Update game session
+    description: Update game session with results, end time, and scoring information
+    parameters:
+      - name: session_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the game session to update
+        example: 15
+      - name: body
+        in: body
+        required: true
+        description: Session update data
+        schema:
+          type: object
+          properties:
+            end_time:
+              type: string
+              format: date-time
+              description: Session end time (optional if end_session is used)
+              example: "2024-01-15T14:30:00"
+            end_session:
+              type: boolean
+              description: Auto-set end time to current timestamp
+              example: true
+            total_questions:
+              type: integer
+              description: Total questions answered in session
+              example: 5
+            correct_answers:
+              type: integer
+              description: Number of correct answers
+              example: 4
+            score:
+              type: number
+              format: float
+              description: Final score percentage
+              example: 80.0
+            is_perfect_score:
+              type: boolean
+              description: Whether session achieved perfect score
+              example: false
+            metadata:
+              type: object
+              description: Updated session metadata
+              example: {"completed": true, "final_pokemon": 25}
+    responses:
+      200:
+        description: Game session updated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Game session updated successfully"
+            session:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Session ID
+                  example: 15
+                player_id:
+                  type: integer
+                  description: Player ID
+                  example: 1
+                session_type:
+                  type: string
+                  description: Type of trivia session
+                  example: "specific_pokemon"
+                difficulty:
+                  type: string
+                  description: Difficulty level
+                  example: "medium"
+                start_time:
+                  type: string
+                  format: date-time
+                  description: Session start time
+                  example: "2024-01-15T14:00:00"
+                end_time:
+                  type: string
+                  format: date-time
+                  description: Session end time
+                  example: "2024-01-15T14:30:00"
+                total_questions:
+                  type: integer
+                  description: Total questions in session
+                  example: 5
+                correct_answers:
+                  type: integer
+                  description: Number of correct answers
+                  example: 4
+                score:
+                  type: number
+                  format: float
+                  description: Final score percentage
+                  example: 80.0
+                is_perfect_score:
+                  type: integer
+                  description: Whether session had perfect score (1 or 0)
+                  example: 0
+      400:
+        description: Invalid input data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "No valid fields to update"
+      404:
+        description: Game session not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Game session not found"
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Failed to update game session: Database error"
+    """
     try:
         data = request.get_json()
         
