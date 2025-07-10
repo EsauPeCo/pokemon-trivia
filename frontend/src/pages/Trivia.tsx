@@ -166,42 +166,52 @@ export const Trivia = () => {
   const generateQuestionsForPokemon = async (
     pokemon: Pokemon
   ): Promise<TriviaQuestion[]> => {
-    const questions: TriviaQuestion[] = [];
-    const difficulties = ["easy", "medium"];
+    // Configuration options for variety
+    const difficulties = ["easy", "medium", "hard"];
     const questionTypes = [
       "general",
-      "stats",
+      "stats", 
       "moves",
       "evolution",
       "basic_info",
     ];
 
-    for (let i = 0; i < 5; i++) {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_API}/trivia/generate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            pokemon_id: pokemon.id,
-            difficulty: difficulties[i % difficulties.length],
-            question_type: questionTypes[i % questionTypes.length],
-          }),
-        }
-      );
+    // Randomly select configuration for all 5 questions
+    const selectedDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+    const selectedQuestionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to generate question ${i + 1}: ${response.status}`
-        );
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_API}/trivia/generate-five`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pokemon_id: pokemon.id,
+          difficulty: selectedDifficulty,
+          question_type: selectedQuestionType,
+        }),
       }
+    );
 
-      const question: TriviaQuestion = await response.json();
-      questions.push(question);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to generate questions: ${response.status}`
+      );
     }
 
+    const data = await response.json();
+    
+    // Extract questions from the response
+    const questions: TriviaQuestion[] = data.questions || [];
+    
+    if (questions.length !== 5) {
+      throw new Error(`Expected 5 questions, but received ${questions.length}`);
+    }
+
+    console.log(`Generated 5 ${selectedDifficulty} ${selectedQuestionType} questions for ${pokemon.name}`);
+    
     return questions;
   };
 
