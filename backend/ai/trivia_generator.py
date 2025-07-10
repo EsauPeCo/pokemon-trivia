@@ -150,6 +150,71 @@ class TriviaGenerator:
 
         return questions
 
+    def generate_multiple_questions_same_pokemon(
+        self,
+        pokemon_data: Dict[Any, Any],
+        question_type: str = "general",
+        difficulty: str = "medium",
+        focus: Optional[str] = None,
+        count: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate multiple trivia questions for the same Pokemon with identical configuration
+        
+        Creates multiple diverse questions about a single Pokemon, all sharing the same
+        question type, difficulty level, and focus area. Currently designed to generate
+        exactly 5 questions due to prompt template constraints.
+
+        Args:
+            pokemon_data: Pokemon data from database
+            question_type: Type of question (basic_info, stats, moves, evolution, general)
+            difficulty: Question difficulty (easy, medium, hard)
+            focus: Optional focus area for general questions
+            count: Number of questions to generate (currently fixed at 5)
+
+        Returns:
+            List of 5 generated trivia questions for the same Pokemon
+        """
+        try:
+            # Prepare Pokemon data string for prompt
+            pokemon_info = self._format_pokemon_data(pokemon_data)
+
+            # Get the appropriate prompt
+            prompt_kwargs = {
+                "question_type": question_type,
+                "difficulty": difficulty
+            }
+
+            # For general questions, always provide a focus (default if none provided)
+            if question_type == "general":
+                prompt_kwargs["focus"] = focus or "general Pokemon knowledge"
+
+            prompt = self.prompts.get_prompt(
+                "multiple_questions", pokemon_info, **prompt_kwargs
+            )
+
+            # Generate response using Gemini
+            response = self.gemini_client.generate_response(prompt)
+
+            # Parse JSON response
+            response_data = self._parse_multiple_questions_response(response)
+
+            # Add metadata to each question
+            questions = []
+            for question_data in response_data.get("questions", []):
+                question_data["pokemon_id"] = pokemon_data.get("id")
+                question_data["pokemon_name"] = pokemon_data.get("name")
+                question_data["generated_at"] = self._get_timestamp()
+                question_data["question_type"] = question_type
+                if focus:
+                    question_data["focus"] = focus
+                questions.append(question_data)
+
+            return questions
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate multiple trivia questions: {str(e)}")
+
     def _format_pokemon_data(self, pokemon_data: Dict[Any, Any]) -> str:
         """
         Format Pokemon data into a readable string for prompts
@@ -229,6 +294,57 @@ Sample Moves: {', '.join(info['moves']) if info['moves'] else 'None'}
             raise ValueError(f"Invalid JSON response from Gemini: {e}")
         except Exception as e:
             raise ValueError(f"Failed to parse response: {e}")
+
+    def _parse_multiple_questions_response(self, response: str) -> Dict[str, Any]:
+        """
+        Parse Gemini response for multiple questions and extract JSON
+
+        Args:
+            response: Raw response from Gemini containing multiple questions
+
+        Returns:
+            Parsed response data with questions array
+        """
+        try:
+            # Try to find JSON in the response
+            response = response.strip()
+
+            # Remove markdown formatting if present
+            if response.startswith("```json"):
+                response = response[7:]
+            if response.endswith("```"):
+                response = response[:-3]
+
+            # Parse JSON
+            response_data = json.loads(response)
+
+            # Validate structure
+            if "questions" not in response_data:
+                raise ValueError("Missing 'questions' field in response")
+
+            if not isinstance(response_data["questions"], list):
+                raise ValueError("'questions' field must be an array")
+
+            # Validate each question
+            required_fields = [
+                "question",
+                "options",
+                "correct_answer",
+                "difficulty",
+                "category",
+            ]
+            
+            for i, question_data in enumerate(response_data["questions"]):
+                for field in required_fields:
+                    if field not in question_data:
+                        raise ValueError(f"Missing required field '{field}' in question {i + 1}")
+
+            return response_data
+
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON response from Gemini: {e}")
+        except Exception as e:
+            raise ValueError(f"Failed to parse multiple questions response: {e}")
 
     def _get_timestamp(self) -> str:
         """Get current timestamp"""
