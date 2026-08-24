@@ -1,6 +1,9 @@
+from pathlib import Path
+
 from flask import Blueprint, send_from_directory
 
 static_bp = Blueprint('static', __name__)
+FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend-dist"
 
 
 @static_bp.route("/favicon.ico")
@@ -17,6 +20,9 @@ def favicon_32():
 
 @static_bp.route("/")
 def home():
+    if (FRONTEND_DIST / "index.html").is_file():
+        return send_from_directory(FRONTEND_DIST, "index.html")
+
     from services.database import PokemonDatabase
     db = PokemonDatabase()
     
@@ -95,3 +101,14 @@ def home():
     """.format(
         db.get_pokemon_count()
     ) 
+
+
+@static_bp.route("/<path:path>")
+def frontend_assets(path):
+    if FRONTEND_DIST.is_dir() and (FRONTEND_DIST / path).is_file():
+        return send_from_directory(FRONTEND_DIST, path)
+
+    if (FRONTEND_DIST / "index.html").is_file():
+        return send_from_directory(FRONTEND_DIST, "index.html")
+
+    return "Not Found", 404
