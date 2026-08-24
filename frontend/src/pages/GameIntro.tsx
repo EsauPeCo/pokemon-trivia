@@ -70,8 +70,8 @@ export function GameIntro() {
       localStorage.setItem("playerName", playerName.trim());
       localStorage.setItem("playerId", data.player.id.toString());
 
-      // Navigate to trivia
-      navigate("/trivia");
+      // Navigate to trivia for the newly created player
+      navigate(`/trivia/${data.player.id}`);
     } catch (err) {
       console.error("Player creation error:", err);
       setError(err instanceof Error ? err.message : "Failed to create player");
